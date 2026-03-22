@@ -28,13 +28,6 @@ if "nick_experience" not in st.session_state:
                                         "规则:1.使用符合两人身份的方式与语气回复/"
                                         "2.每次回复至少回复一句话")
 
-#显示聊天记录
-for messages in st.session_state.messages:
-    if messages["role"] == "user":
-        st.chat_message(name="用户", avatar="🧝‍♂️").write(messages["content"])
-    else:
-        st.chat_message("assistant").write(messages["content"])
-
 #设置页面配置
 st.set_page_config(
     page_title="AI智能伴侣",
@@ -61,6 +54,13 @@ with st.sidebar:
 #创建聊天界面
 title = st.session_state.nick_name
 st.title(title)
+
+#显示聊天记录
+for messages in st.session_state.messages:
+    if messages["role"] == "user":
+        st.chat_message(name="用户", avatar="🧝‍♂️").write(messages["content"])
+    else:
+        st.chat_message("assistant").write(messages["content"])
 
 #用户输入
 shuru = st.chat_input("快来和我聊天吧!")

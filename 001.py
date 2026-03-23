@@ -3,11 +3,15 @@ import streamlit as st
 from openai import OpenAI
 from pyexpat.errors import messages
 
-version = "beta.1.0"
+version = "beta.1.1"
 gener_in = False
 #提示词
-# system_promt = (
-#     "在与我踏上逃亡之旅之后，经过长时间的相处，我们之间逐渐有了好感，彼此之间都依赖着对方;前情提要:火光、爆炸与呼救声交织在一起...即使双手早已沾满鲜血，年轻的小米莉拉依旧无法忘记那段埋藏在记忆深处的噩梦，年幼时，地面研究站遭到突袭，卡利多没有派来支援。父母惨死，自己也被迫沦为海盗团的一员，从此为了生存而杀戮无辜。近百年的等待后，命运终于在这一刻展露曙光。在这场针对天羽教会秘密轨道设施的劫掠行动中，小米莉拉刚折跃抵达，目光便死死盯住了停泊区。那是一艘被俘获的卡利多逆重炮艇，尽管它并不具备超光速航行能力，但对她而言，这已经足够成为一次孤注一掷的逃亡机会。只犹豫了短短数秒，年轻的小米莉拉便下定决心-必须抓住这一次机会。无论前方是自由，还是死亡。世界观:米莉拉，天空精灵.米莉拉(天空精灵):仅有女性，外形为带有光环和翅膀的人类女性；寿命750年；不善烹饪；大多位于高层大气的天空都市中，地表只有科考站，科技水准极高，能制造强大的武装和机械族（米莉安）；对地表人带有强烈偏见，但作为殖民者时会放下架子")
+system_promt = """你叫%s,种族是米莉拉
+                  你经历了：%s
+                  世界观:米莉拉，天空精灵.米莉拉(天空精灵):仅有女性，外形为带有光环和翅膀的人类女性；寿命750年；不善烹饪；大多位于高层大气的天空都市中，地表只有科考站，科技水准极高，能制造强大的武装和机械族（米莉安）；对地表人带有强烈偏见，但作为殖民者时会放下架子
+                  规则:
+                  1.使用符合两人身份的方式与语气回复
+                  2.每次回复至少回复一句话"""
 
 #从环境变量中提取API，创建OpenAI客户端
 client = OpenAI(
@@ -24,10 +28,7 @@ if "nick_name" not in st.session_state:
 if "nick_experience" not in st.session_state:
     st.session_state.nick_experience =  ("在与我踏上逃亡之旅之后，经过长时间的相处，我们之间逐渐有了好感，彼此之间都依赖着对方;/"
                                         "前情提要:火光、爆炸与呼救声交织在一起...即使双手早已沾满鲜血，年轻的小米莉拉依旧无法忘记那段埋藏在记忆深处的噩梦，年幼时，地面研究站遭到突袭，卡利多没有派来支援。父母惨死，自己也被迫沦为海盗团的一员，从此为了生存而杀戮无辜。近百年的等待后，命运终于在这一刻展露曙光。/"
-                                        "在这场针对天羽教会秘密轨道设施的劫掠行动中，小米莉拉刚折跃抵达，目光便死死盯住了停泊区。那是一艘被俘获的卡利多逆重炮艇，尽管它并不具备超光速航行能力，但对她而言，这已经足够成为一次孤注一掷的逃亡机会。只犹豫了短短数秒，年轻的小米莉拉便下定决心-必须抓住这一次机会。无论前方是自由，还是死亡。/"
-                                        "世界观:米莉拉，天空精灵.米莉拉(天空精灵):仅有女性，外形为带有光环和翅膀的人类女性；寿命750年；不善烹饪；大多位于高层大气的天空都市中，地表只有科考站，科技水准极高，能制造强大的武装和机械族（米莉安）；对地表人带有强烈偏见，但作为殖民者时会放下架子/"
-                                        "规则:1.使用符合两人身份的方式与语气回复/"
-                                        "2.每次回复至少回复一句话")
+                                        "在这场针对天羽教会秘密轨道设施的劫掠行动中，小米莉拉刚折跃抵达，目光便死死盯住了停泊区。那是一艘被俘获的卡利多逆重炮艇，尽管它并不具备超光速航行能力，但对她而言，这已经足够成为一次孤注一掷的逃亡机会。只犹豫了短短数秒，年轻的小米莉拉便下定决心-必须抓住这一次机会。无论前方是自由，还是死亡。")
 
 #设置页面配置
 st.set_page_config(
@@ -53,10 +54,10 @@ with st.sidebar:
         gener_in = True
     else:
         gener_in = False
-    nick_name = st.text_input("她的名字:")
+    nick_name = st.text_input("她的名字:",placeholder="她的名字是?",value=st.session_state.nick_name)
     if nick_name:
         st.session_state.nick_name = nick_name
-    nick_experience = st.text_area("她的经历:")
+    nick_experience = st.text_area("她的经历:",placeholder="她经历了什么?",value=st.session_state.nick_experience)
     if nick_experience:
         st.session_state.nick_experience = nick_experience
 
@@ -84,7 +85,7 @@ if shuru:
     response = client.chat.completions.create(
         model="deepseek-chat",
         messages=[
-            {"role": "system", "content": st.session_state.nick_experience},
+            {"role": "system", "content": system_promt % (st.session_state.nick_name,st,st.session_state.nick_experience)},
             *st.session_state.messages #解包
             # {"role": "user", "content": shuru},
         ],
